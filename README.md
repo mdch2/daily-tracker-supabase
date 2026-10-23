@@ -26,7 +26,7 @@ pnpm db:types
 Leer [AGENTS.md](AGENTS.md), la [política y matriz de acceso](docs/security.md) y la [decisión de autorización](docs/adr/001-access-control.md) antes de cambiar el esquema o permisos.
 
 - Acceso denegado por defecto, RLS en cada tabla de aplicación expuesta y permisos explícitos por rol, operación y columna.
-- Perfiles privados por propietario autenticado; anon no puede acceder. Solo se permite editar display_name y time_zone propios. Auth crea los perfiles y administra la eliminación de cuentas.
+- Perfiles privados por propietario autenticado; anon no puede acceder. Solo display_name admite UPDATE directo; el calendario se confirma por RPC y permanece fijo en hábitos v1. Auth crea los perfiles y administra la eliminación de cuentas.
 - Las funciones internas no se exponen como RPC. Las funciones privilegiadas fijan search_path y requieren revisión de autorización.
 - No usar claves privilegiadas en el móvil, metadatos editables como permisos ni datos personales en fixtures.
 - Cada cambio de autorización requiere pruebas reales con roles cliente sobre PostgreSQL. Los mocks del móvil no prueban RLS.
@@ -58,3 +58,11 @@ Para Android, configura la app con `http://10.0.2.2:54321` o reenvía explícita
 ### Verificación del 21 de octubre de 2026
 
 Se reprodujo el fallo de registro con 8 caracteres contra Auth local: `422 weak_password` al exigir todavía 12. Tras alinear la configuración y reiniciar sin resetear datos, la prueba de Auth completa pasó y eliminó su cuenta sintética. `pnpm db:test`: 65 comprobaciones pgTAP correctas. Lint SQL local sin errores. No hubo cambios de esquema, permisos ni despliegues remotos.
+
+## Hábitos v1
+
+Registro binario/cuantitativo con las tres frecuencias, calendario explícito y correcciones de siete días: [contrato implementado](docs/habits-v1.md), [ADR-007](docs/adr/007-first-habit-delivery.md). Verificación adicional: `pnpm db:test:habits:isolated`. El esquema se actualiza incrementalmente con `pnpm exec supabase migration up --local`. Sin despliegues remotos.
+
+### Verificación de hábitos: 22 de octubre de 2026
+
+Migración incremental local aplicada sin reset. `pnpm db:test`: 165 comprobaciones en tres archivos correctas; lint SQL sin errores. `pnpm db:test:habits:isolated`: migraciones de aplicación, conservación de perfil y concurrencia de dos conexiones correctas, con base temporal eliminada. `pnpm db:test:auth` correcto y usuario/perfil sintéticos eliminados. Tipos generados desde PostgreSQL e importados en el móvil; sin cambios remotos. El [contrato v1](docs/habits-v1.md) detalla el alcance del bootstrap Auth sintético de la prueba aislada.

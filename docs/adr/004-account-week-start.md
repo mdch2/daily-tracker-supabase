@@ -78,3 +78,7 @@ Aplicar el nuevo valor a una supuesta semana siguiente tampoco resuelve por sí 
 ## Alcance
 
 Solo documentación de la decisión y sus consecuencias. No se crean columnas, tablas, migraciones, RPC, pantallas ni tipos generados. La transición temporal debe resolverse antes de implementar el cambio de preferencia con hábitos activos.
+
+## Actualización de implementación: 22 de octubre de 2026
+
+El [ADR-007](007-first-habit-delivery.md) y el [contrato v1](../habits-v1.md) cierran e implementan la primera entrega de registro. Las propuestas y pendientes anteriores describen el contexto original; los cambios de configuración, pausas y rachas siguen aplazados, conservando sus decisiones aprobadas.

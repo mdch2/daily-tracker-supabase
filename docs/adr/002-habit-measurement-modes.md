@@ -96,3 +96,7 @@ Estas secuencias son criterios de diseño, no pruebas ejecutadas. Cada letra ide
 ## Alcance de esta decisión
 
 Documentación de producto y diseño preliminar. No crea tablas, migraciones, RPC, algoritmos ni escrituras móviles. Quedan aceptados los dos modos de hábito, ambas formas de registro cuantitativo y metas exclusivamente mínimas. El diseño técnico descrito guía la futura implementación; no es funcionalidad disponible.
+
+## Actualización de implementación: 22 de octubre de 2026
+
+El [ADR-007](007-first-habit-delivery.md) y el [contrato v1](../habits-v1.md) cierran e implementan la primera entrega de registro. Las propuestas y pendientes anteriores describen el contexto original; los cambios de configuración, pausas y rachas siguen aplazados, conservando sus decisiones aprobadas.

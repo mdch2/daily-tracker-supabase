@@ -3,7 +3,7 @@
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[]
 
 export type Database = {
-  
+
   "public": {
           Tables: {
             "habit_day_records": {
@@ -58,7 +58,7 @@ isOneToOne: false
                     "created_at"?: string,"id"?: string,"name"?: string,"start_date"?: string,"updated_at"?: string,"user_id"?: string
                   }
                   Relationships: [
-                    
+
                   ]
                 },"profiles": {
                   Row: {
@@ -72,7 +72,7 @@ isOneToOne: false
                     "created_at"?: string,"display_name"?: string | null,"id"?: string,"time_zone"?: string | null,"updated_at"?: string,"week_start_day"?: number | null
                   }
                   Relationships: [
-                    
+
                   ]
                 }
           }
@@ -212,7 +212,7 @@ export type CompositeTypes<
 export const Constants = {
   "public": {
           Enums: {
-            
+
           }
         }
 } as const
