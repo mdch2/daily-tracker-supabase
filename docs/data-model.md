@@ -2,7 +2,7 @@
 
 ## Esquema implementado
 
-La migración inicial define public.profiles para la API y la migración incremental de seguridad refuerza sus permisos. Ambas pertenecen exclusivamente a este repositorio. No se crean tablas de funcionalidades todavía inexistentes.
+La migración inicial define public.profiles para la API y la migración incremental de seguridad refuerza sus permisos. Ambas pertenecen exclusivamente a este repositorio. La migración 20261021000100 implementa el [contrato de hábitos v1](habits-v1.md); las secciones de diseño previas se conservan como contexto y no sustituyen ese contrato.
 
 | Columna                 | Contrato                                                                                              |
 | ----------------------- | ----------------------------------------------------------------------------------------------------- |
@@ -12,22 +12,20 @@ La migración inicial define public.profiles para la API y la migración increme
 | created_at / updated_at | timestamptz, definidos por servidor; cliente sin permiso para escribirlos.                            |
 
 El índice de PK cubre búsquedas y políticas por propietario; no hacen falta índices duplicados.
-Solo authenticated tiene SELECT y UPDATE de display_name/time_zone. RLS limita ambas operaciones a auth.uid() = id.
+Solo authenticated tiene SELECT propio y UPDATE directo de display_name. La zona y el nuevo week_start_day (1 o 7, nullable) se confirman mediante initialize_habit_calendar y quedan fijos en v1. RLS limita ambas operaciones a auth.uid() = id.
 La matriz y las normas obligatorias se documentan en [security.md](security.md). No hay INSERT ni DELETE de cliente. La eliminación administrativa de una cuenta elimina explícitamente su perfil por FK; no se define todavía borrado en cascada de datos de negocio.
 El trigger ignora user_metadata para no convertir contenido editable en un dato confiable de autorización. Un backfill cubre cuentas anteriores a la migración.
 
-## Diseño preliminar, sin DDL aplicado
+## Diseño preliminar de módulos posteriores
 
 Cada módulo futuro tendrá UUID estable generado antes de enviar, user_id no nulo a auth.users, created_at y updated_at de servidor, privilegios mínimos y RLS por propietario.
 El esquema de sus campos funcionales se cerrará con criterios de aceptación, antes de una migración.
 
-| Entidad           | Núcleo propuesto                                               | Relaciones, restricciones e índices a validar                                                                                                                                                                                                                                                          |
-| ----------------- | -------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| habits            | id, user_id, name, archived_at                                 | Índice (user_id, archived_at); archivo conserva historial. Recurrencia versionada por fecha efectiva al definir su contrato.                                                                                                                                                                           |
-| habit_completions | id, user_id, habit_id, occurrence_date, recorded_at, time_zone | FK compuesta (habit_id,user_id) a habits(id,user_id), con UNIQUE correspondiente en habits. Si se elige cumplimiento binario: UNIQUE(habit_id,occurrence_date) y confirmar/revertir por ocurrencia. Para cantidades se necesita otro contrato de idempotencia; no aplicar esa unicidad por anticipado. |
-| routines          | id, user_id, name, archived_at                                 | Índice por propietario/archivo. Las actividades y su orden requieren una tabla hija solo cuando se defina qué agrupa una rutina.                                                                                                                                                                       |
-| goals             | id, user_id, title, archived_at                                | Unidad, objetivo y avance manual/derivado pendientes; no persistir porcentajes calculables sin contrato de actualización.                                                                                                                                                                              |
-| journal_entries   | id, user_id, entry_date, body                                  | Índice (user_id,entry_date); UNIQUE(user_id,entry_date) solo si se decide una entrada por fecha. No presuponerlo ahora.                                                                                                                                                                                |
+| Entidad         | Núcleo propuesto                | Relaciones, restricciones e índices a validar                                                                                    |
+| --------------- | ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| routines        | id, user_id, name, archived_at  | Índice por propietario/archivo. Las actividades y su orden requieren una tabla hija solo cuando se defina qué agrupa una rutina. |
+| goals           | id, user_id, title, archived_at | Unidad, objetivo y avance manual/derivado pendientes; no persistir porcentajes calculables sin contrato de actualización.        |
+| journal_entries | id, user_id, entry_date, body   | Índice (user_id,entry_date); UNIQUE(user_id,entry_date) solo si se decide una entrada por fecha. No presuponerlo ahora.          |
 
 Las FKs simples a una entidad privada no bastan para impedir que un usuario vincule un ID ajeno: usar propiedad compuesta y pruebas de escritura cruzada.
 No habrá transferencias de propietario desde cliente. Los borrados deberán restringirse o modelarse explícitamente para no destruir historial.
@@ -35,7 +33,7 @@ Las búsquedas futuras por historial tendrán paginación e índice por hábito/
 
 ## Modalidades de hábitos confirmadas
 
-El MVP incluirá hábitos binarios y cuantitativos, según [ADR-002](adr/002-habit-measurement-modes.md). Están confirmados ambos modos y las dos formas de registrar cantidades: añadir un aporte y fijar el total. El contrato de persistencia sigue en diseño.
+El MVP incluirá hábitos binarios y cuantitativos, según [ADR-002](adr/002-habit-measurement-modes.md). Están confirmados ambos modos y las dos formas de registrar cantidades: añadir un aporte y fijar el total. La persistencia de la primera entrega está en [hábitos v1](habits-v1.md); el detalle de las entregas posteriores sigue en diseño.
 
 | Modalidad    | Qué registra                | Datos propuestos para evaluar el progreso                       |
 | ------------ | --------------------------- | --------------------------------------------------------------- |
@@ -60,7 +58,7 @@ El inicio de semana se elige entre lunes y domingo y se conserva en Supabase por
 
 Los días y semanas se interpretan con la zona IANA elegida para la cuenta, común a todos sus dispositivos y sin cambio automático al viajar. `profiles.time_zone` ya existe; mientras sea nulo no debe inferirse una zona. Los registros deben conservar fecha de negocio y contexto temporal aplicados, en lugar de reconstruir el pasado con la zona actual del perfil. Cada semana cerrada conserva sus límites y contexto temporal; no se recalcula usando la preferencia actual. Hace falta conservar períodos o configuración con vigencia suficiente para reconstruirlos, además del valor actual de la preferencia.
 
-Siguen abiertos el flujo de selección inicial, la fecha efectiva de cambios manuales de zona o inicio de semana y el tratamiento de períodos de transición/parciales. El cambio entre lunes y domingo necesita evitar períodos superpuestos y fechas sin evaluar; no se resuelve mediante una actualización global del perfil. No se ha aplicado DDL.
+Siguen abiertos el flujo de selección inicial, la fecha efectiva de cambios manuales de zona o inicio de semana y el tratamiento de períodos de transición/parciales. El cambio entre lunes y domingo necesita evitar períodos superpuestos y fechas sin evaluar; no se resuelve mediante una actualización global del perfil. El alcance implementado y los casos aplazados se distinguen en [hábitos v1](habits-v1.md).
 
 ## Registro y corrección histórica confirmados
 
@@ -78,7 +76,7 @@ Cada hábito tiene un máximo de tres fechas protegidas en cualquier ventana mó
 
 La pausa conserva una racha previa válida sin sumar días, cantidades ni cumplimiento semanal. Terminarla no rompe la racha a medianoche: la persona debe cumplir el siguiente día exigible según su programación. Los días no programados fuera de pausa siguen siendo descanso normal y no consumen presupuesto.
 
-Se necesitan intervalos históricos y contexto temporal, sin usar un único booleano mutable. Siguen pendientes el efecto en metas semanales, fórmulas no diarias, fase previa a la activación, actividad durante una pausa, edición retroactiva y detalle de fechas de inicio/reanudación anticipada. No se ha aplicado DDL.
+Se necesitan intervalos históricos y contexto temporal, sin usar un único booleano mutable. Siguen pendientes el efecto en metas semanales, fórmulas no diarias, fase previa a la activación, actividad durante una pausa, edición retroactiva y detalle de fechas de inicio/reanudación anticipada. El alcance implementado y los casos aplazados se distinguen en [hábitos v1](habits-v1.md).
 
 ## Fechas e historial
 

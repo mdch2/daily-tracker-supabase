@@ -100,3 +100,7 @@ Estos son criterios de diseño, no pruebas ejecutadas. El recálculo está decid
 ## Alcance
 
 Documentación de producto y criterios de diseño. No crea tablas, migraciones, RPC, algoritmos ni pantallas. Las reglas pendientes no se implementan por omisión.
+
+## Actualización de implementación: 22 de octubre de 2026
+
+El [ADR-007](007-first-habit-delivery.md) y el [contrato v1](../habits-v1.md) cierran e implementan la primera entrega de registro. Las propuestas y pendientes anteriores describen el contexto original; los cambios de configuración, pausas y rachas siguen aplazados, conservando sus decisiones aprobadas.

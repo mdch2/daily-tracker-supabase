@@ -54,3 +54,7 @@ Estos son criterios de diseño; no se han ejecutado algoritmos ni pruebas sobre 
 ## Alcance
 
 Esta decisión documenta el alcance confirmado. No añade tablas, migraciones, RPC, algoritmos ni pantallas. El esquema se cerrará con las reglas anteriores antes de implementarse.
+
+## Actualización de implementación: 22 de octubre de 2026
+
+El [ADR-007](007-first-habit-delivery.md) y el [contrato v1](../habits-v1.md) cierran e implementan la primera entrega de registro. Las propuestas y pendientes anteriores describen el contexto original; los cambios de configuración, pausas y rachas siguen aplazados, conservando sus decisiones aprobadas.
