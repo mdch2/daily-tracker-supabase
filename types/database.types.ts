@@ -6,16 +6,70 @@ export type Database = {
   
   "public": {
           Tables: {
-            "profiles": {
+            "habit_day_records": {
                   Row: {
-                    "created_at": string,"display_name": string | null,"id": string,"time_zone": string | null,"updated_at": string
+                    "amount_milliunits": number | null,"binary_value": boolean | null,"definition_id": string,"habit_id": string,"occurrence_date": string,"recorded_at": string,"revision": number,"updated_at": string,"user_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"display_name"?: string | null,"id": string,"time_zone"?: string | null,"updated_at"?: string
+                    "amount_milliunits"?: number | null,"binary_value"?: boolean | null,"definition_id": string,"habit_id": string,"occurrence_date": string,"recorded_at"?: string,"revision": number,"updated_at"?: string,"user_id": string
                   }
                   Update: {
-                    "created_at"?: string,"display_name"?: string | null,"id"?: string,"time_zone"?: string | null,"updated_at"?: string
+                    "amount_milliunits"?: number | null,"binary_value"?: boolean | null,"definition_id"?: string,"habit_id"?: string,"occurrence_date"?: string,"recorded_at"?: string,"revision"?: number,"updated_at"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "habit_day_records_definition_id_habit_id_user_id_fkey"
+      columns: ["definition_id","habit_id","user_id"]
+isOneToOne: false
+      referencedRelation: "habit_definitions"
+      referencedColumns: ["id","habit_id","user_id"]
+    }
+                  ]
+                },"habit_definitions": {
+                  Row: {
+                    "created_at": string,"effective_from": string,"habit_id": string,"id": string,"measurement_mode": string,"schedule_type": string,"target_milliunits": number | null,"time_zone": string,"unit_label": string | null,"updated_at": string,"user_id": string,"week_start_day": number,"weekday_mask": number | null,"weekly_target": number | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"effective_from": string,"habit_id": string,"id"?: string,"measurement_mode": string,"schedule_type": string,"target_milliunits"?: number | null,"time_zone": string,"unit_label"?: string | null,"updated_at"?: string,"user_id": string,"week_start_day": number,"weekday_mask"?: number | null,"weekly_target"?: number | null
+                  }
+                  Update: {
+                    "created_at"?: string,"effective_from"?: string,"habit_id"?: string,"id"?: string,"measurement_mode"?: string,"schedule_type"?: string,"target_milliunits"?: number | null,"time_zone"?: string,"unit_label"?: string | null,"updated_at"?: string,"user_id"?: string,"week_start_day"?: number,"weekday_mask"?: number | null,"weekly_target"?: number | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "habit_definitions_habit_id_user_id_fkey"
+      columns: ["habit_id","user_id"]
+isOneToOne: false
+      referencedRelation: "habits"
+      referencedColumns: ["id","user_id"]
+    }
+                  ]
+                },"habits": {
+                  Row: {
+                    "created_at": string,"id": string,"name": string,"start_date": string,"updated_at": string,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"id": string,"name": string,"start_date": string,"updated_at"?: string,"user_id": string
+                  }
+                  Update: {
+                    "created_at"?: string,"id"?: string,"name"?: string,"start_date"?: string,"updated_at"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    
+                  ]
+                },"profiles": {
+                  Row: {
+                    "created_at": string,"display_name": string | null,"id": string,"time_zone": string | null,"updated_at": string,"week_start_day": number | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"display_name"?: string | null,"id": string,"time_zone"?: string | null,"updated_at"?: string,"week_start_day"?: number | null
+                  }
+                  Update: {
+                    "created_at"?: string,"display_name"?: string | null,"id"?: string,"time_zone"?: string | null,"updated_at"?: string,"week_start_day"?: number | null
                   }
                   Relationships: [
                     
@@ -26,7 +80,20 @@ export type Database = {
             [_ in never]: never
           }
           Functions: {
-            [_ in never]: never
+            "create_habit":
+{ Args: { "p_id": string,"p_measurement_mode": string,"p_name": string,"p_schedule_type": string,"p_target_milliunits"?: number,"p_unit_label"?: string,"p_weekday_mask"?: number,"p_weekly_target"?: number }; Returns: string
+                           },
+"get_habit_context":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "business_date": string,"next_day_at": string,"server_time": string,"time_zone": string,"week_start_date": string,"week_start_day": number
+            }[]
+                           },
+"initialize_habit_calendar":
+{ Args: { "p_time_zone": string,"p_week_start_day": number }; Returns: undefined
+                           },
+"record_habit_day":
+{ Args: { "p_amount_milliunits"?: number,"p_binary_value"?: boolean,"p_expected_revision"?: number,"p_habit_id": string,"p_kind": string,"p_occurrence_date": string,"p_operation_id": string }; Returns: Json
+                           }
           }
           Enums: {
             [_ in never]: never

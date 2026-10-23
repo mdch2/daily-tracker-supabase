@@ -14,7 +14,7 @@ begin
   end loop;
 end;
 $$;
-select plan(34);
+select plan(35);
 
 insert into auth.users (id, email, raw_user_meta_data) values
   ('10000000-0000-4000-8000-000000000001', 'owner@example.test', '{"role":"service_role","is_admin":true}'),
@@ -30,7 +30,8 @@ select set_config('request.jwt.claims', '{"sub":"10000000-0000-4000-8000-0000000
 select is((select count(*)::integer from public.profiles), 1, 'Editable metadata does not expand owner access');
 select is((select id from public.profiles), '10000000-0000-4000-8000-000000000001'::uuid, 'Owner reads their own profile');
 select is((select count(*)::integer from public.profiles where id = '10000000-0000-4000-8000-000000000002'), 0, 'Other user is invisible');
-select lives_ok($$update public.profiles set display_name = 'Synthetic user', time_zone = 'America/Bogota' where id = '10000000-0000-4000-8000-000000000001'$$, 'Owner updates permitted fields');
+select lives_ok($$update public.profiles set display_name = 'Synthetic user' where id = '10000000-0000-4000-8000-000000000001'$$, 'Owner updates permitted fields');
+select lives_ok($$select public.initialize_habit_calendar('America/Bogota',1::smallint)$$, 'Owner initializes business calendar');
 select is((select display_name from public.profiles), 'Synthetic user', 'Update persists');
 with changed as (
   update public.profiles set display_name = 'Intrusion' where id = '10000000-0000-4000-8000-000000000002' returning id
@@ -41,7 +42,7 @@ select throws_ok($$truncate public.profiles$$, '42501', null, 'Client cannot tru
 select throws_ok($$update public.profiles set id = '10000000-0000-4000-8000-000000000002'$$, '42501', null, 'Owner cannot transfer ownership');
 select throws_ok($$update public.profiles set created_at = now()$$, '42501', null, 'Client cannot rewrite creation timestamp');
 select throws_ok($$update public.profiles set updated_at = now()$$, '42501', null, 'Client cannot rewrite update timestamp');
-select throws_ok($$update public.profiles set time_zone = 'Invalid/Timezone'$$, '23514', null, 'Database validates timezones');
+select throws_ok($$update public.profiles set time_zone = 'Invalid/Timezone'$$, '42501', null, 'Timezone writes require calendar RPC');
 select is((select time_zone from public.profiles), 'America/Bogota', 'Rejected write preserves the previous timezone');
 
 select set_config('request.jwt.claims', '{"sub":"10000000-0000-4000-8000-000000000002","role":"authenticated"}', true);

@@ -12,6 +12,7 @@ Node.js 22 compatible, pnpm 10.28.2, Supabase CLI compatible y Docker con motor 
 pnpm db:start
 pnpm exec supabase migration up --local
 pnpm db:test
+pnpm db:test:auth
 pnpm exec supabase db lint --local --level warning
 pnpm db:types
 ```
@@ -43,3 +44,17 @@ Los permisos administrativos existentes no convierten service_role en un rol cli
 El entorno pudo iniciar la base con su imagen PostgreSQL 17.11.0.004 ya disponible, tras corregir una caché CLI local que apuntaba a 17.11.0.003. Esa caché se encuentra en supabase/.temp, ignorado por Git; no se cambió la configuración versionada para resolverlo.
 
 El [modelo de datos](docs/data-model.md) describe el esquema actual y distingue las propuestas futuras que todavía no tienen DDL.
+
+## Registro local y configuración de Auth
+
+Auth exige un mínimo de **8 caracteres**, alineado con la validación de la app (8–128). Las confirmaciones por correo permanecen habilitadas. Después de modificar `supabase/config.toml`, ejecuta `pnpm db:restart`: detiene e inicia la instancia local con la nueva configuración, conservando los datos. `db:start` sobre servicios ya iniciados no aplica cambios de configuración.
+
+No se necesita `db:fresh` para corregir el registro. El comando existente `pnpm db:reset` ya reconstruye la base local y destruye sus datos; resérvalo para instancias descartables. Estos comandos no cambian proyectos remotos.
+
+`pnpm db:test:auth` usa exclusivamente las URLs locales devueltas por Supabase CLI. Comprueba rechazo con 7 caracteres, registro con 8, confirmación obligatoria, entrega de correo al buzón local, callback `dailytracker://callback`, intercambio PKCE S256 y lectura del perfil mediante REST con el token del propietario. Solo la limpieza del usuario sintético usa credenciales administrativas locales; la comprobación del perfil usa el rol autenticado. El usuario y su correo se eliminan al terminar. Los secretos y las sesiones permanecen en memoria y no se imprimen. Para elegir el correo: `pnpm db:test:auth --email user1-test@gmail.com`. Si la dirección ya existe, la prueba se detiene antes de modificarla; la limpieza solo elimina la cuenta nueva creada por la prueba.
+
+Para Android, configura la app con `http://10.0.2.2:54321` o reenvía explícitamente `adb reverse tcp:54321 tcp:54321`. `127.0.0.1` dentro del emulador no apunta al equipo. Metro solo reenvía su propio puerto. Reinicia Expo y recarga la app tras editar su `.env`.
+
+### Verificación del 21 de octubre de 2026
+
+Se reprodujo el fallo de registro con 8 caracteres contra Auth local: `422 weak_password` al exigir todavía 12. Tras alinear la configuración y reiniciar sin resetear datos, la prueba de Auth completa pasó y eliminó su cuenta sintética. `pnpm db:test`: 65 comprobaciones pgTAP correctas. Lint SQL local sin errores. No hubo cambios de esquema, permisos ni despliegues remotos.

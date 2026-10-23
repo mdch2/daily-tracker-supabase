@@ -8,8 +8,12 @@
   },
   "scripts": {
     "db:start": "supabase start",
+    "db:stop": "supabase stop",
+    "db:restart": "supabase stop && supabase start",
     "db:reset": "supabase db reset --local",
     "db:test": "supabase test db",
+    "db:test:auth": "node scripts/test-auth.mjs",
+    "db:test:habits:isolated": "node scripts/test-habits-isolated.mjs",
     "db:types": "node scripts/generate-db-types.mjs"
   }
 }
