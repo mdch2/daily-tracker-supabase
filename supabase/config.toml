@@ -42,7 +42,7 @@ additional_redirect_urls = ["dailytracker://callback", "dailytracker://callback?
 jwt_expiry = 3600
 enable_signup = true
 enable_anonymous_sign_ins = false
-minimum_password_length = 12
+minimum_password_length = 8
 
 [auth.email]
 enable_signup = true
