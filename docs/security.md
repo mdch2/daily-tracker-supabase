@@ -82,3 +82,9 @@ La migración 20261021000100 conserva SELECT propio de profiles y UPDATE directo
 Las RPC de escritura necesitan privilegios definer por la ausencia deliberada de DML cliente. Fijan search_path vacío y califican objetos; validan propietario, modalidad, elegibilidad y calendario/ventana antes de aceptar nuevas escrituras. No confían en metadatos editables ni reciben user_id. service_role no recibe grants nuevos para estos objetos. Las FKs compuestas impiden relaciones privadas cruzadas. No se incorporan cascadas de negocio.
 
 La suite de hábitos y la prueba aislada de concurrencia se describen en [hábitos v1](habits-v1.md). Los resultados de las secciones anteriores son evidencia histórica de la base previa.
+
+## Edición de hábitos — 23 de octubre de 2026
+
+`rename_habit` y `edit_habit` solo conceden EXECUTE a authenticated por sus firmas; las RPC exigen auth.uid(), propietario y token observado. No amplían grants ni políticas de las tablas públicas. `private.habit_creation_requests` y `private.habit_edit_operations` tienen RLS y deniegan acceso a PUBLIC, anon, authenticated y service_role. El servidor conserva los payloads y timestamps.
+
+Las 216 comprobaciones pgTAP incluyen las nuevas funciones y conservación histórica. La prueba aislada añade conservación exacta durante migraciones y dos conexiones reales para duplicados y conflictos de metadatos/configuración. Véanse [ADR-008](adr/008-habit-editing.md) y [contrato de edición](habit-editing.md).

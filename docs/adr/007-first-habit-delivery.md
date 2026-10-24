@@ -18,3 +18,7 @@ Un log de eventos completo no aporta una necesidad actual; los comprobantes pres
 Aplazar cambios de definición/calendario evita introducir ahora reglas no aprobadas de transiciones. La definición inicial conserva contexto y vigencia para el historial. Pausas, rachas, porcentajes agregados, archivo y edición posterior quedan fuera de esta entrega, sin revocar ADR-002 a ADR-006 ni el umbral diario aprobado de tres días del móvil.
 
 El [contrato v1](../habits-v1.md) describe esquema, RPC, cantidades, errores y verificación. Solo se aplica localmente; no autoriza despliegues remotos.
+
+## Ampliación posterior
+
+El 23 de octubre de 2026 se aprobó la edición de nombre inmediato y frecuencia/meta desde la próxima semana de la cuenta, sin reinterpretar historial. [ADR-008](008-habit-editing.md) amplía ese alcance; las demás decisiones se conservan.

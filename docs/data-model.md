@@ -91,3 +91,7 @@ types/database.types.ts se genera desde PostgreSQL local mediante Supabase CLI; 
 pnpm db:types usa Supabase CLI contra PostgreSQL local y sustituye el archivo de forma atómica solo si recibe una definición Database válida.
 Las migraciones son incrementales; no editar una migración ya aplicada a un entorno compartido.
 Antes de migraciones destructivas se necesita una estrategia de respaldo/recuperación acorde al cambio.
+
+## Edición con vigencia semanal — 23 de octubre de 2026
+
+La definición única inicial se amplía a versiones por hábito/fecha efectiva. Nombre inmediato; frecuencia/meta desde la próxima semana de cuenta; unidad, modalidad y calendario fijos. Los registros siguen referenciando su definición histórica. Los detalles vigentes están en [edición](habit-editing.md) y [ADR-008](adr/008-habit-editing.md); las propuestas previas no sustituyen este contrato.
