@@ -66,3 +66,7 @@ Registro binario/cuantitativo con las tres frecuencias, calendario explícito y 
 ### Verificación de hábitos: 22 de octubre de 2026
 
 Migración incremental local aplicada sin reset. `pnpm db:test`: 165 comprobaciones en tres archivos correctas; lint SQL sin errores. `pnpm db:test:habits:isolated`: migraciones de aplicación, conservación de perfil y concurrencia de dos conexiones correctas, con base temporal eliminada. `pnpm db:test:auth` correcto y usuario/perfil sintéticos eliminados. Tipos generados desde PostgreSQL e importados en el móvil; sin cambios remotos. El [contrato v1](docs/habits-v1.md) detalla el alcance del bootstrap Auth sintético de la prueba aislada.
+
+## Edición de hábitos — 23 de octubre de 2026
+
+[Nombre, frecuencia y meta con vigencia semanal](docs/habit-editing.md), según [ADR-008](docs/adr/008-habit-editing.md). Migraciones locales incrementales sin reset; 216 comprobaciones pgTAP, conservación exacta de hábitos/registros en cadena aislada y concurrencia real de ediciones. Tipos regenerados desde PostgreSQL; sin despliegues remotos.

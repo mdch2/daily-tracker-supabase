@@ -76,6 +76,10 @@ function connection(statement) {
   child.stdin.end(statement);
   return { done, holding };
 }
+const snapshotQuery =
+  "select md5(jsonb_build_object('habit',to_jsonb(h),'definition',to_jsonb(d),'record',to_jsonb(r))::text) from public.habits h join public.habit_definitions d on d.habit_id=h.id join public.habit_day_records r on r.habit_id=h.id where h.id='22000000-0000-4000-8000-000000000006';";
+let preservedHabitSnapshot;
+
 const user = "22000000-0000-4000-8000-000000000001";
 const habit = "22000000-0000-4000-8000-000000000002";
 const actor = `set local role authenticated; select set_config('request.jwt.claims','{"sub":"${user}","role":"authenticated"}',true);`;
@@ -117,6 +121,16 @@ try {
       sql(`insert into auth.users(id,email) values ('${user}','migration-survival@example.test');
         update public.profiles set display_name='Preserved profile' where id='${user}';`);
     }
+    if (name === "20261023000100_habit_names.sql") {
+      sql(`insert into auth.users(id,email) values ('22000000-0000-4000-8000-000000000005','habit-migration@example.test');
+        begin; set local role authenticated;
+        select set_config('request.jwt.claims','{"sub":"22000000-0000-4000-8000-000000000005","role":"authenticated"}',true);
+        select public.initialize_habit_calendar('UTC',1::smallint);
+        select public.create_habit('22000000-0000-4000-8000-000000000006','Preserved habit','quantity','daily',null,null,20000,'pages');
+        select public.record_habit_day('22000000-0000-4000-8000-000000000007','22000000-0000-4000-8000-000000000006',(clock_timestamp() at time zone 'UTC')::date,'add_amount',null,10000);
+        commit;`);
+      preservedHabitSnapshot = sql(snapshotQuery);
+    }
     sql(readFileSync(`supabase/migrations/${name}`, "utf8"));
   }
   sql(`do $$ begin if not exists (select 1 from public.profiles where id='${user}'
@@ -124,6 +138,13 @@ try {
     then raise exception 'Incremental migration lost data'; end if; end $$;`);
   process.stdout.write(
     "Full application migration chain and incremental profile preservation: PASS\n",
+  );
+  if (!preservedHabitSnapshot || preservedHabitSnapshot !== sql(snapshotQuery))
+    throw new Error(
+      "Incremental edit migrations changed an existing habit, definition or record",
+    );
+  process.stdout.write(
+    "Incremental habit, definition and record preservation: PASS\n",
   );
   for (const name of readdirSync("supabase/tests/database")
     .filter((name) => name.endsWith(".test.sql"))
@@ -158,6 +179,60 @@ try {
     and amount_milliunits=1000000 and revision=4) then raise exception 'Stale correction overwrote contribution'; end if; end $$;`);
   process.stdout.write(
     "Two real concurrent client connections: duplicate, addition and stale correction PASS\n",
+  );
+  const renameCommand = (operation, name, token) =>
+    `select public.rename_habit('${operation}','${habit}','${name}','${token}'::timestamptz);`;
+  const firstToken = sql(
+    `select updated_at::text from public.habits where id='${habit}';`,
+  )
+    .trim()
+    .split(/\r?\n/)
+    .at(-1);
+  const renameOperation = randomUUID();
+  await overlap(
+    renameCommand(renameOperation, "Renamed", firstToken),
+    renameCommand(renameOperation, "Renamed", firstToken),
+  );
+  const renameToken = sql(
+    `select updated_at::text from public.habits where id='${habit}';`,
+  )
+    .trim()
+    .split(/\r?\n/)
+    .at(-1);
+  await overlap(
+    renameCommand(randomUUID(), "Latest name", renameToken),
+    renameCommand(randomUUID(), "Stale name", renameToken),
+    3,
+  );
+  const editCommand = (operation, token, target) =>
+    `select public.edit_habit('${operation}','${habit}','Planned concurrent goal','${token}'::timestamptz,'weekly',null,3::smallint,${target});`;
+  const editToken = sql(
+    `select updated_at::text from public.habits where id='${habit}';`,
+  )
+    .trim()
+    .split(/\r?\n/)
+    .at(-1);
+  const editOperation = randomUUID();
+  await overlap(
+    editCommand(editOperation, editToken, 30000),
+    editCommand(editOperation, editToken, 30000),
+  );
+  const latestToken = sql(
+    `select updated_at::text from public.habits where id='${habit}';`,
+  )
+    .trim()
+    .split(/\r?\n/)
+    .at(-1);
+  await overlap(
+    editCommand(randomUUID(), latestToken, 40000),
+    editCommand(randomUUID(), latestToken, 50000),
+    3,
+  );
+  sql(`do $$ begin if (select count(*) from public.habit_definitions where habit_id='${habit}') <> 2
+    or (select target_milliunits from public.habit_definitions where habit_id='${habit}' order by effective_from desc limit 1) <> 40000
+    then raise exception 'Concurrent pending configuration lost or duplicated'; end if; end $$;`);
+  process.stdout.write(
+    "Concurrent metadata/configuration retries and stale edits: PASS\n",
   );
 } finally {
   // The identifier is generated here, never accepted from arguments/environment.

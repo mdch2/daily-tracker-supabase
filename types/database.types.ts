@@ -83,6 +83,9 @@ isOneToOne: false
             "create_habit":
 { Args: { "p_id": string,"p_measurement_mode": string,"p_name": string,"p_schedule_type": string,"p_target_milliunits"?: number,"p_unit_label"?: string,"p_weekday_mask"?: number,"p_weekly_target"?: number }; Returns: string
                            },
+"edit_habit":
+{ Args: { "p_expected_updated_at": string,"p_habit_id": string,"p_name": string,"p_operation_id": string,"p_schedule_type": string,"p_target_milliunits"?: number,"p_weekday_mask"?: number,"p_weekly_target"?: number }; Returns: Json
+                           },
 "get_habit_context":
 { Args: Record<PropertyKey, never>; Returns: {
               "business_date": string,"next_day_at": string,"server_time": string,"time_zone": string,"week_start_date": string,"week_start_day": number
@@ -93,6 +96,9 @@ isOneToOne: false
                            },
 "record_habit_day":
 { Args: { "p_amount_milliunits"?: number,"p_binary_value"?: boolean,"p_expected_revision"?: number,"p_habit_id": string,"p_kind": string,"p_occurrence_date": string,"p_operation_id": string }; Returns: Json
+                           },
+"rename_habit":
+{ Args: { "p_expected_updated_at": string,"p_habit_id": string,"p_name": string,"p_operation_id": string }; Returns: Json
                            }
           }
           Enums: {
