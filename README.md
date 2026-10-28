@@ -70,3 +70,7 @@ Migración incremental local aplicada sin reset. `pnpm db:test`: 165 comprobacio
 ## Edición de hábitos — 23 de octubre de 2026
 
 [Nombre, frecuencia y meta con vigencia semanal](docs/habit-editing.md), según [ADR-008](docs/adr/008-habit-editing.md). Migraciones locales incrementales sin reset; 216 comprobaciones pgTAP, conservación exacta de hábitos/registros en cadena aislada y concurrencia real de ediciones. Tipos regenerados desde PostgreSQL; sin despliegues remotos.
+
+## Rutinas v1 — 27 de octubre de 2026
+
+Implementadas según [contrato v1](docs/routines-v1.md) y [ADR-009](docs/adr/009-routines-v1.md). Migración incremental local sin reset; 301 comprobaciones pgTAP, reproducción con conservación de hábitos y concurrencia real de Rutinas. Tipos generados desde PostgreSQL; sin cambios remotos. Ejecutar pnpm db:test:routines:isolated para la cadena completa y concurrencia.

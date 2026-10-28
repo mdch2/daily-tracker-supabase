@@ -16,6 +16,10 @@ Solo authenticated tiene SELECT propio y UPDATE directo de display_name. La zona
 La matriz y las normas obligatorias se documentan en [security.md](security.md). No hay INSERT ni DELETE de cliente. La eliminación administrativa de una cuenta elimina explícitamente su perfil por FK; no se define todavía borrado en cascada de datos de negocio.
 El trigger ignora user_metadata para no convertir contenido editable en un dato confiable de autorización. Un backfill cubre cuentas anteriores a la migración.
 
+## Diseño de rutinas y metas personales
+
+El [plan de datos de rutinas y metas personales](routines-goals-plan.md) concreta las entidades, relaciones, restricciones, operaciones y autorización propuestas antes de implementar. Las definiciones funcionales y tres decisiones de alcance están confirmadas en el móvil; los detalles nuevos se presentan para revisión. No hay migraciones, tablas ni RPC nuevas implementadas. El diseño preliminar anterior se conserva a continuación como contexto histórico; para estos dos módulos prevalece el plan enlazado.
+
 ## Diseño preliminar de módulos posteriores
 
 Cada módulo futuro tendrá UUID estable generado antes de enviar, user_id no nulo a auth.users, created_at y updated_at de servidor, privilegios mínimos y RLS por propietario.
@@ -95,3 +99,7 @@ Antes de migraciones destructivas se necesita una estrategia de respaldo/recuper
 ## Edición con vigencia semanal — 23 de octubre de 2026
 
 La definición única inicial se amplía a versiones por hábito/fecha efectiva. Nombre inmediato; frecuencia/meta desde la próxima semana de cuenta; unidad, modalidad y calendario fijos. Los registros siguen referenciando su definición histórica. Los detalles vigentes están en [edición](habit-editing.md) y [ADR-008](adr/008-habit-editing.md); las propuestas previas no sustituyen este contrato.
+
+## Rutinas implementadas — 27 de octubre de 2026
+
+El [contrato de Rutinas v1](routines-v1.md) describe las cinco entidades públicas y el comprobante privado de la migración 20261027000100. Para Rutinas prevalece sobre el plan preliminar; Metas y Diario siguen sin implementar. Los registros de hábitos existentes no se copian ni modifican por la migración.
