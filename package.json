@@ -14,6 +14,7 @@
     "db:test": "supabase test db",
     "db:test:auth": "node scripts/test-auth.mjs",
     "db:test:habits:isolated": "node scripts/test-habits-isolated.mjs",
-    "db:types": "node scripts/generate-db-types.mjs"
+    "db:types": "node scripts/generate-db-types.mjs",
+    "db:test:routines:isolated": "node scripts/test-habits-isolated.mjs"
   }
 }

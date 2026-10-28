@@ -234,6 +234,64 @@ try {
   process.stdout.write(
     "Concurrent metadata/configuration retries and stale edits: PASS\n",
   );
+
+  const routine = randomUUID();
+  const ownStep = randomUUID();
+  const routineSteps = JSON.stringify([
+    {
+      id: ownStep,
+      kind: "own",
+      title: "Synthetic routine step",
+      required: true,
+    },
+  ]);
+  const createRoutine = `select public.create_routine('${routine}','Concurrent routine','daily','${routineSteps}'::jsonb);`;
+  await overlap(createRoutine, createRoutine);
+  const ownCommand = (operation, revision, completed = true) =>
+    `select public.record_routine_step('${operation}','${routine}','${ownStep}',(clock_timestamp() at time zone 'UTC')::date,${completed},${revision});`;
+  const ownOperation = randomUUID();
+  await overlap(ownCommand(ownOperation, 0), ownCommand(ownOperation, 0));
+  await overlap(
+    ownCommand(randomUUID(), 1, false),
+    ownCommand(randomUUID(), 1, true),
+    3,
+  );
+  sql(`do $$ begin if not exists(select 1 from public.routine_step_day_records where routine_id='${routine}' and revision=2 and completed=false)
+    then raise exception 'Routine lost a concurrent update or applied a replay twice'; end if; end $$;`);
+  const routineToken = () =>
+    sql(`select updated_at::text from public.routines where id='${routine}';`)
+      .trim()
+      .split(/\r?\n/)
+      .at(-1);
+  const routineEdit = (operation, token, name) =>
+    `select public.edit_routine('${operation}','${routine}','${name}','${token}'::timestamptz,'daily','${routineSteps}'::jsonb);`;
+  const initialRoutineToken = routineToken();
+  const routineEditOperation = randomUUID();
+  await overlap(
+    routineEdit(routineEditOperation, initialRoutineToken, "Renamed routine"),
+    routineEdit(routineEditOperation, initialRoutineToken, "Renamed routine"),
+  );
+  const latestRoutineToken = routineToken();
+  await overlap(
+    routineEdit(randomUUID(), latestRoutineToken, "Latest routine"),
+    routineEdit(randomUUID(), latestRoutineToken, "Stale routine"),
+    3,
+  );
+  await overlap(
+    routineEdit(randomUUID(), routineToken(), "Edited while recording"),
+    ownCommand(randomUUID(), 2),
+  );
+  const archiveOperation = randomUUID();
+  const archiveToken = routineToken();
+  const archiveRoutine = `select public.archive_routine('${archiveOperation}','${routine}','${archiveToken}'::timestamptz);`;
+  await overlap(archiveRoutine, archiveRoutine);
+  sql(`begin; ${actor} ${ownCommand(ownOperation, 0)} commit;`);
+  sql(`do $$ begin if (select revision from public.routine_step_day_records where routine_id='${routine}')<>3
+    or (select count(*) from public.routine_definitions where routine_id='${routine}')<>2
+    then raise exception 'Routine archive/replay changed history'; end if; end $$;`);
+  process.stdout.write(
+    "Routine concurrency: creation, replay, stale record/configuration, edit/record and archive PASS\n",
+  );
 } finally {
   // The identifier is generated here, never accepted from arguments/environment.
   if (!/^habit_test_[a-f0-9]{32}$/.test(database))

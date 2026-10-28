@@ -74,28 +74,149 @@ isOneToOne: false
                   Relationships: [
 
                   ]
+                },"routine_definition_steps": {
+                  Row: {
+                    "definition_id": string,"is_required": boolean,"own_title": string | null,"position": number,"routine_id": string,"step_id": string,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "definition_id": string,"is_required": boolean,"own_title"?: string | null,"position": number,"routine_id": string,"step_id": string,"user_id": string
+                  }
+                  Update: {
+                    "definition_id"?: string,"is_required"?: boolean,"own_title"?: string | null,"position"?: number,"routine_id"?: string,"step_id"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "routine_definition_steps_definition_id_routine_id_user_id_fkey"
+      columns: ["definition_id","routine_id","user_id"]
+isOneToOne: false
+      referencedRelation: "routine_definitions"
+      referencedColumns: ["id","routine_id","user_id"]
+    },{
+      foreignKeyName: "routine_definition_steps_step_id_routine_id_user_id_fkey"
+      columns: ["step_id","routine_id","user_id"]
+isOneToOne: false
+      referencedRelation: "routine_steps"
+      referencedColumns: ["id","routine_id","user_id"]
+    }
+                  ]
+                },"routine_definitions": {
+                  Row: {
+                    "effective_from": string,"id": string,"routine_id": string,"schedule_type": string,"time_zone": string,"user_id": string,"week_start_day": number,"weekday_mask": number | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "effective_from": string,"id"?: string,"routine_id": string,"schedule_type": string,"time_zone": string,"user_id": string,"week_start_day": number,"weekday_mask"?: number | null
+                  }
+                  Update: {
+                    "effective_from"?: string,"id"?: string,"routine_id"?: string,"schedule_type"?: string,"time_zone"?: string,"user_id"?: string,"week_start_day"?: number,"weekday_mask"?: number | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "routine_definitions_routine_id_user_id_fkey"
+      columns: ["routine_id","user_id"]
+isOneToOne: false
+      referencedRelation: "routines"
+      referencedColumns: ["id","user_id"]
+    }
+                  ]
+                },"routine_step_day_records": {
+                  Row: {
+                    "completed": boolean,"definition_id": string,"occurrence_date": string,"recorded_at": string,"revision": number,"routine_id": string,"step_id": string,"updated_at": string,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "completed": boolean,"definition_id": string,"occurrence_date": string,"recorded_at"?: string,"revision": number,"routine_id": string,"step_id": string,"updated_at"?: string,"user_id": string
+                  }
+                  Update: {
+                    "completed"?: boolean,"definition_id"?: string,"occurrence_date"?: string,"recorded_at"?: string,"revision"?: number,"routine_id"?: string,"step_id"?: string,"updated_at"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "routine_step_day_records_definition_id_routine_id_step_id__fkey"
+      columns: ["definition_id","routine_id","step_id","user_id"]
+isOneToOne: false
+      referencedRelation: "routine_definition_steps"
+      referencedColumns: ["definition_id","routine_id","step_id","user_id"]
+    }
+                  ]
+                },"routine_steps": {
+                  Row: {
+                    "habit_id": string | null,"id": string,"routine_id": string,"step_kind": string,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "habit_id"?: string | null,"id": string,"routine_id": string,"step_kind": string,"user_id": string
+                  }
+                  Update: {
+                    "habit_id"?: string | null,"id"?: string,"routine_id"?: string,"step_kind"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "routine_steps_habit_id_user_id_fkey"
+      columns: ["habit_id","user_id"]
+isOneToOne: false
+      referencedRelation: "habits"
+      referencedColumns: ["id","user_id"]
+    },{
+      foreignKeyName: "routine_steps_routine_id_user_id_fkey"
+      columns: ["routine_id","user_id"]
+isOneToOne: false
+      referencedRelation: "routines"
+      referencedColumns: ["id","user_id"]
+    }
+                  ]
+                },"routines": {
+                  Row: {
+                    "archived_at": string | null,"created_at": string,"id": string,"name": string,"start_date": string,"updated_at": string,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "archived_at"?: string | null,"created_at"?: string,"id": string,"name": string,"start_date": string,"updated_at"?: string,"user_id": string
+                  }
+                  Update: {
+                    "archived_at"?: string | null,"created_at"?: string,"id"?: string,"name"?: string,"start_date"?: string,"updated_at"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+
+                  ]
                 }
           }
           Views: {
             [_ in never]: never
           }
           Functions: {
-            "create_habit":
+            "archive_routine":
+{ Args: { "p_expected_updated_at": string,"p_operation_id": string,"p_routine_id": string }; Returns: Json
+                           },
+"create_habit":
 { Args: { "p_id": string,"p_measurement_mode": string,"p_name": string,"p_schedule_type": string,"p_target_milliunits"?: number,"p_unit_label"?: string,"p_weekday_mask"?: number,"p_weekly_target"?: number }; Returns: string
+                           },
+"create_routine":
+{ Args: { "p_id": string,"p_name": string,"p_schedule_type": string,"p_steps": Json,"p_weekday_mask"?: number }; Returns: string
                            },
 "edit_habit":
 { Args: { "p_expected_updated_at": string,"p_habit_id": string,"p_name": string,"p_operation_id": string,"p_schedule_type": string,"p_target_milliunits"?: number,"p_weekday_mask"?: number,"p_weekly_target"?: number }; Returns: Json
+                           },
+"edit_routine":
+{ Args: { "p_expected_updated_at": string,"p_name": string,"p_operation_id": string,"p_routine_id": string,"p_schedule_type"?: string,"p_steps"?: Json,"p_weekday_mask"?: number }; Returns: Json
                            },
 "get_habit_context":
 { Args: Record<PropertyKey, never>; Returns: {
               "business_date": string,"next_day_at": string,"server_time": string,"time_zone": string,"week_start_date": string,"week_start_day": number
             }[]
                            },
+"get_routines":
+{ Args: { "p_archived"?: boolean,"p_ids"?: (string)[],"p_offset"?: number }; Returns: Json
+                           },
 "initialize_habit_calendar":
 { Args: { "p_time_zone": string,"p_week_start_day": number }; Returns: undefined
                            },
 "record_habit_day":
 { Args: { "p_amount_milliunits"?: number,"p_binary_value"?: boolean,"p_expected_revision"?: number,"p_habit_id": string,"p_kind": string,"p_occurrence_date": string,"p_operation_id": string }; Returns: Json
+                           },
+"record_routine_step":
+{ Args: { "p_completed": boolean,"p_expected_revision": number,"p_occurrence_date": string,"p_operation_id": string,"p_routine_id": string,"p_step_id": string }; Returns: Json
                            },
 "rename_habit":
 { Args: { "p_expected_updated_at": string,"p_habit_id": string,"p_name": string,"p_operation_id": string }; Returns: Json

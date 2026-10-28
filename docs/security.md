@@ -88,3 +88,7 @@ La suite de hábitos y la prueba aislada de concurrencia se describen en [hábit
 `rename_habit` y `edit_habit` solo conceden EXECUTE a authenticated por sus firmas; las RPC exigen auth.uid(), propietario y token observado. No amplían grants ni políticas de las tablas públicas. `private.habit_creation_requests` y `private.habit_edit_operations` tienen RLS y deniegan acceso a PUBLIC, anon, authenticated y service_role. El servidor conserva los payloads y timestamps.
 
 Las 216 comprobaciones pgTAP incluyen las nuevas funciones y conservación histórica. La prueba aislada añade conservación exacta durante migraciones y dos conexiones reales para duplicados y conflictos de metadatos/configuración. Véanse [ADR-008](adr/008-habit-editing.md) y [contrato de edición](habit-editing.md).
+
+## Rutinas v1 — 27 de octubre de 2026
+
+Las cinco tablas públicas de Rutinas conceden solo SELECT propio por RLS; sin DML directo, acceso anon, cambio de propietario o timestamps cliente. private.routine_operations y helpers no conceden acceso cliente. create_routine, edit_routine, archive_routine y record_routine_step son definer con search_path vacío y autorización por auth.uid; get_routines es invocadora con RLS. EXECUTE explícito por firma solo para authenticated. Sin grants nuevos a service_role ni cambios de defaults. Las FKs compuestas y validaciones transaccionales rechazan vínculos ajenos. Evidencia: 85 pruebas nuevas de Rutinas dentro de las 301 comprobaciones pgTAP y concurrencia real del [contrato v1](routines-v1.md).
