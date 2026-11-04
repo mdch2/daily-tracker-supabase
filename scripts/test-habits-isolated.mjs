@@ -90,7 +90,7 @@ const command = (
   revision = "null",
 ) =>
   `select public.record_habit_day('${operation}','${habit}',(clock_timestamp() at time zone 'UTC')::date,'${kind}',null,${amount},${revision});`;
-async function overlap(first, second, expectedSecond = 0) {
+async function overlap(first, second, expectedSecond = 0, expectedSecondError = "revision_conflict") {
   const a = connection(
     `begin; ${actor} ${first} select 'HOLDING'; select pg_sleep(1); commit;`,
   );
@@ -99,7 +99,7 @@ async function overlap(first, second, expectedSecond = 0) {
   const [left, right] = await Promise.all([a.done, b.done]);
   if (left.code !== 0 || right.code !== expectedSecond)
     throw new Error(left.error + right.error);
-  if (expectedSecond !== 0 && !right.error.includes("revision_conflict"))
+  if (expectedSecond !== 0 && !right.error.includes(expectedSecondError))
     throw new Error("Expected revision conflict");
 }
 try {
@@ -292,6 +292,40 @@ try {
   process.stdout.write(
     "Routine concurrency: creation, replay, stale record/configuration, edit/record and archive PASS\n",
   );
+
+  const goalId = randomUUID();
+  const goalCreateOperation = randomUUID();
+  const goalInput = {
+    operation_id: goalCreateOperation, goal_id: goalId, name: "Concurrent goal",
+    description: null, start_date: sql("select (clock_timestamp() at time zone 'UTC')::date;").trim().split(/\r?\n/).at(-1),
+    deadline: null, mode: "amount", progress_source: "manual", unit_label: "units", target_milliunits: 1000000,
+  };
+  const goalCall = (rpc, input) => `select public.${rpc}('${JSON.stringify(input)}'::jsonb);`;
+  await overlap(goalCall("create_goal", goalInput), goalCall("create_goal", goalInput));
+  const addGoal = (operation) => goalCall("record_goal_amount", {
+    operation_id: operation, goal_id: goalId, date: goalInput.start_date, action: "add", amount_milliunits: 1000,
+  });
+  const goalAddition = randomUUID();
+  await overlap(addGoal(goalAddition), addGoal(goalAddition));
+  await overlap(addGoal(randomUUID()), addGoal(randomUUID()));
+  await overlap(addGoal(randomUUID()), goalCall("record_goal_amount", {
+    operation_id: randomUUID(), goal_id: goalId, date: goalInput.start_date, action: "set", amount_milliunits: 0, expected_revision: 3,
+  }), 3);
+  const editGoal = (version, operation = randomUUID()) => goalCall("edit_goal", {
+    operation_id: operation, goal_id: goalId, expected_version: version, name: "Edited goal",
+    description: null, deadline: null, target_milliunits: 2000000,
+  });
+  await overlap(editGoal(1), addGoal(randomUUID()));
+  await overlap(editGoal(2), editGoal(2), 3);
+  const archiveGoal = goalCall("archive_goal", { operation_id: randomUUID(), goal_id: goalId, expected_version: 3 });
+  await overlap(archiveGoal, addGoal(randomUUID()), 3, "archived");
+  await overlap(archiveGoal, archiveGoal);
+  sql(`begin; ${actor} ${addGoal(goalAddition)} commit;`);
+  sql(`do $$ begin if not exists(select 1 from public.goal_amount_day_records where goal_id='${goalId}' and revision=5 and amount_milliunits=5000)
+    or (select count(*) from private.goal_operations where goal_id='${goalId}')<>9 then
+    raise exception 'Goal replay, addition or archive lost a concurrent update'; end if; end $$;`);
+  process.stdout.write("Goal concurrency: create/replay, additive totals, stale substitution/configuration, edit/record and archive/record PASS\n");
+
 } finally {
   // The identifier is generated here, never accepted from arguments/environment.
   if (!/^habit_test_[a-f0-9]{32}$/.test(database))

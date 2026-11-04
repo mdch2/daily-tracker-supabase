@@ -18,7 +18,9 @@ El trigger ignora user_metadata para no convertir contenido editable en un dato 
 
 ## Diseño de rutinas y metas personales
 
-El [plan de datos de rutinas y metas personales](routines-goals-plan.md) concreta las entidades, relaciones, restricciones, operaciones y autorización propuestas antes de implementar. Las definiciones funcionales y tres decisiones de alcance están confirmadas en el móvil; los detalles nuevos se presentan para revisión. No hay migraciones, tablas ni RPC nuevas implementadas. El diseño preliminar anterior se conserva a continuación como contexto histórico; para estos dos módulos prevalece el plan enlazado.
+Actualización del 30 de octubre: Rutinas está implementada según [su contrato v1](routines-v1.md). Metas tiene reglas de producto aprobadas en móvil y [diseño técnico concretado](goals-v1.md), todavía sin DDL/RPC. Para Metas prevalece este contrato sobre las propuestas históricas siguientes; descripción hasta 400 e hitos manuales corregibles durante toda la meta sin archivar.
+
+El [plan previo de rutinas y metas](routines-goals-plan.md) conserva el contexto del diseño inicial. Para Rutinas prevalece el [contrato implementado](routines-v1.md); para Metas, el [diseño técnico definido](goals-v1.md), conciliado con las reglas aprobadas del móvil y todavía sin migraciones/RPC de Metas. El diseño preliminar siguiente es histórico y no sustituye esos contratos.
 
 ## Diseño preliminar de módulos posteriores
 

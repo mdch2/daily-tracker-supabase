@@ -6,7 +6,107 @@ export type Database = {
 
   "public": {
           Tables: {
-            "habit_day_records": {
+            "goal_amount_day_records": {
+                  Row: {
+                    "amount_milliunits": number,"goal_id": string,"occurrence_date": string,"recorded_at": string,"revision": number,"updated_at": string,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "amount_milliunits": number,"goal_id": string,"occurrence_date": string,"recorded_at"?: string,"revision": number,"updated_at"?: string,"user_id": string
+                  }
+                  Update: {
+                    "amount_milliunits"?: number,"goal_id"?: string,"occurrence_date"?: string,"recorded_at"?: string,"revision"?: number,"updated_at"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "goal_amount_day_records_goal_id_user_id_fkey"
+      columns: ["goal_id","user_id"]
+isOneToOne: false
+      referencedRelation: "goals"
+      referencedColumns: ["id","user_id"]
+    }
+                  ]
+                },"goal_milestone_records": {
+                  Row: {
+                    "completed": boolean,"completion_date": string | null,"goal_id": string,"milestone_id": string,"recorded_at": string,"revision": number,"updated_at": string,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "completed": boolean,"completion_date"?: string | null,"goal_id": string,"milestone_id": string,"recorded_at"?: string,"revision": number,"updated_at"?: string,"user_id": string
+                  }
+                  Update: {
+                    "completed"?: boolean,"completion_date"?: string | null,"goal_id"?: string,"milestone_id"?: string,"recorded_at"?: string,"revision"?: number,"updated_at"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "goal_milestone_records_milestone_id_goal_id_user_id_fkey"
+      columns: ["milestone_id","goal_id","user_id"]
+isOneToOne: false
+      referencedRelation: "goal_milestones"
+      referencedColumns: ["id","goal_id","user_id"]
+    }
+                  ]
+                },"goal_milestones": {
+                  Row: {
+                    "goal_id": string,"id": string,"name": string,"position": number,"threshold_milliunits": number | null,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "goal_id": string,"id": string,"name": string,"position": number,"threshold_milliunits"?: number | null,"user_id": string
+                  }
+                  Update: {
+                    "goal_id"?: string,"id"?: string,"name"?: string,"position"?: number,"threshold_milliunits"?: number | null,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "goal_milestones_goal_id_user_id_fkey"
+      columns: ["goal_id","user_id"]
+isOneToOne: false
+      referencedRelation: "goals"
+      referencedColumns: ["id","user_id"]
+    }
+                  ]
+                },"goal_versions": {
+                  Row: {
+                    "archived_at": string | null,"deadline": string | null,"description": string | null,"effective_at": string,"goal_id": string,"name": string,"target_milliunits": number | null,"user_id": string,"version": number
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "archived_at"?: string | null,"deadline"?: string | null,"description"?: string | null,"effective_at"?: string,"goal_id": string,"name": string,"target_milliunits"?: number | null,"user_id": string,"version": number
+                  }
+                  Update: {
+                    "archived_at"?: string | null,"deadline"?: string | null,"description"?: string | null,"effective_at"?: string,"goal_id"?: string,"name"?: string,"target_milliunits"?: number | null,"user_id"?: string,"version"?: number
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "goal_versions_goal_id_user_id_fkey"
+      columns: ["goal_id","user_id"]
+isOneToOne: false
+      referencedRelation: "goals"
+      referencedColumns: ["id","user_id"]
+    }
+                  ]
+                },"goals": {
+                  Row: {
+                    "created_at": string,"habit_id": string | null,"id": string,"linked_metric": string | null,"mode": string,"progress_source": string,"start_date": string,"time_zone": string,"unit_label": string | null,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"habit_id"?: string | null,"id": string,"linked_metric"?: string | null,"mode": string,"progress_source": string,"start_date": string,"time_zone": string,"unit_label"?: string | null,"user_id": string
+                  }
+                  Update: {
+                    "created_at"?: string,"habit_id"?: string | null,"id"?: string,"linked_metric"?: string | null,"mode"?: string,"progress_source"?: string,"start_date"?: string,"time_zone"?: string,"unit_label"?: string | null,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "goals_habit_id_user_id_fkey"
+      columns: ["habit_id","user_id"]
+isOneToOne: false
+      referencedRelation: "habits"
+      referencedColumns: ["id","user_id"]
+    }
+                  ]
+                },"habit_day_records": {
                   Row: {
                     "amount_milliunits": number | null,"binary_value": boolean | null,"definition_id": string,"habit_id": string,"occurrence_date": string,"recorded_at": string,"revision": number,"updated_at": string,"user_id": string
                   }
@@ -186,8 +286,14 @@ isOneToOne: false
             [_ in never]: never
           }
           Functions: {
-            "archive_routine":
+            "archive_goal":
+{ Args: { "p_input": Json }; Returns: Json
+                           },
+"archive_routine":
 { Args: { "p_expected_updated_at": string,"p_operation_id": string,"p_routine_id": string }; Returns: Json
+                           },
+"create_goal":
+{ Args: { "p_input": Json }; Returns: Json
                            },
 "create_habit":
 { Args: { "p_id": string,"p_measurement_mode": string,"p_name": string,"p_schedule_type": string,"p_target_milliunits"?: number,"p_unit_label"?: string,"p_weekday_mask"?: number,"p_weekly_target"?: number }; Returns: string
@@ -195,11 +301,26 @@ isOneToOne: false
 "create_routine":
 { Args: { "p_id": string,"p_name": string,"p_schedule_type": string,"p_steps": Json,"p_weekday_mask"?: number }; Returns: string
                            },
+"edit_goal":
+{ Args: { "p_input": Json }; Returns: Json
+                           },
 "edit_habit":
 { Args: { "p_expected_updated_at": string,"p_habit_id": string,"p_name": string,"p_operation_id": string,"p_schedule_type": string,"p_target_milliunits"?: number,"p_weekday_mask"?: number,"p_weekly_target"?: number }; Returns: Json
                            },
 "edit_routine":
 { Args: { "p_expected_updated_at": string,"p_name": string,"p_operation_id": string,"p_routine_id": string,"p_schedule_type"?: string,"p_steps"?: Json,"p_weekday_mask"?: number }; Returns: Json
+                           },
+"get_goal":
+{ Args: { "p_input": Json }; Returns: Json
+                           },
+"get_goal_contributions":
+{ Args: { "p_input": Json }; Returns: Json
+                           },
+"get_goal_history":
+{ Args: { "p_input": Json }; Returns: Json
+                           },
+"get_goals":
+{ Args: { "p_input": Json }; Returns: Json
                            },
 "get_habit_context":
 { Args: Record<PropertyKey, never>; Returns: {
@@ -211,6 +332,12 @@ isOneToOne: false
                            },
 "initialize_habit_calendar":
 { Args: { "p_time_zone": string,"p_week_start_day": number }; Returns: undefined
+                           },
+"record_goal_amount":
+{ Args: { "p_input": Json }; Returns: Json
+                           },
+"record_goal_milestone":
+{ Args: { "p_input": Json }; Returns: Json
                            },
 "record_habit_day":
 { Args: { "p_amount_milliunits"?: number,"p_binary_value"?: boolean,"p_expected_revision"?: number,"p_habit_id": string,"p_kind": string,"p_occurrence_date": string,"p_operation_id": string }; Returns: Json

@@ -1,5 +1,7 @@
 # Plan de datos: rutinas y metas personales
 
+Actualización del 30 de octubre de 2026: para Metas prevalece [Metas v1: diseño técnico](goals-v1.md), conciliado con las reglas aprobadas y el contrato cliente del móvil. Las secciones originales siguientes son contexto y quedan sustituidas donde difieran: descripción 400, hitos manuales sin ventana de siete días, inicio/archivo por fechas completas, un solo almacén de operaciones y RPC con payload JSON. No hay implementación de Metas.
+
 Fecha: 2026-10-27. Diseño propuesto, sin DDL, migraciones, RPC implementadas ni permisos concedidos. Las reglas confirmadas por el usuario y la propuesta funcional completa están en el repositorio móvil: `docs/architecture/adr/008-routines-personal-goals.md` y `docs/architecture/routines-goals-plan.md`. La aprobación de una definición funcional no constituye evidencia de implementación o autorización de despliegue.
 
 Este documento es la fuente del diseño de persistencia para estos módulos. No copiar su esquema al repositorio móvil ni importar fuentes entre repositorios. El móvil recibirá contratos de servicios y tipos generados únicamente cuando exista una implementación verificada.
@@ -72,7 +74,7 @@ No hay `goal_progress` mutable, contadores de días, banderas de logro persistid
 
 ### Integridad y validación de metas
 
-- Nombre 1–100; descripción nula o hasta 2.000 caracteres, normalizando vacío a nulo. Inicio hoy o futuro, nunca anterior a la aceptación inicial. Zona copiada del calendario confirmado y fija.
+- Nombre 1–100; descripción nula o hasta 400 caracteres, normalizando vacío a nulo. Inicio hoy o futuro, nunca anterior a la aceptación inicial. Zona copiada del calendario confirmado y fija.
 - Fecha límite nula o igual/posterior al inicio. Nulo significa sin vencimiento.
 - `mode`: cantidad o hitos. `progress_source`: manual o hábito. Los discriminantes deben prohibir campos/filas ajenos a cada combinación, mediante restricciones y validación transaccional.
 - Una meta de cantidad exige objetivo positivo hasta 999999999999 milésimas; una de hitos no recibe un objetivo cuantitativo independiente y requiere 1–30 hitos, posiciones únicas y contiguas.
@@ -84,7 +86,7 @@ No hay `goal_progress` mutable, contadores de días, banderas de logro persistid
 - Modalidad, fuente, inicio, unidad, hábito, medida, lista/orden/umbrales de hitos no se editan inicialmente. Nombre, descripción, límite y objetivo cuantitativo generan una nueva versión inmediata bajo bloqueo; el historial anterior permanece.
 - PK de totales por `(goal_id, occurrence_date)`. Solo cantidad manual, rango desde cero, fecha elegible y revisión positiva.
 - PK de hito manual por `milestone_id`; FK compuesta al hito/propietario. Si completed=true, completion_date no nula; si false, completion_date nula. Al revertir se valida la fecha anterior antes de borrarla del estado, conservándola en el comprobante.
-- Propuesta de ventana manual `[D−7,D]`, acotada por inicio; para hitos se validan la fecha previa y nueva. Esta ventana de Metas está por revisar y no fue aprobada al decidir «solo hoy» para Rutinas.
+- Ventana aprobada de cantidades manuales `[D−7,D]`, acotada por inicio. Hitos manuales corregibles/reversibles entre inicio y hoy durante toda la meta sin archivar, con historial; sin corte de siete días.
 - Sin progreso manual para fuente vinculada ni escrituras manuales fuera de su modalidad. Archivo bloquea cambios y nuevas fechas; no elimina registros, no restaura inicialmente.
 - La suma manual resultante no supera el máximo representable: la RPC bloquea la meta y valida el total acumulado con aritmética exacta antes de confirmar.
 
