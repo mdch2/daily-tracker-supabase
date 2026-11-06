@@ -74,3 +74,7 @@ Migración incremental local aplicada sin reset. `pnpm db:test`: 165 comprobacio
 ## Rutinas v1 — 27 de octubre de 2026
 
 Implementadas según [contrato v1](docs/routines-v1.md) y [ADR-009](docs/adr/009-routines-v1.md). Migración incremental local sin reset; 301 comprobaciones pgTAP, reproducción con conservación de hábitos y concurrencia real de Rutinas. Tipos generados desde PostgreSQL; sin cambios remotos. Ejecutar pnpm db:test:routines:isolated para la cadena completa y concurrencia.
+
+## Metas v1: contrato definido — 30 de octubre de 2026
+
+Reglas y contrato técnico conciliados con el móvil en [Metas v1](docs/goals-v1.md): descripción 400, hitos manuales corregibles durante toda la meta sin archivar, cantidades con ventana de siete días, proyecciones coherentes e historial paginado. Sin migraciones/RPC implementadas ni tipos generados de Metas; la siguiente fase es implementación local y pruebas PostgreSQL.
