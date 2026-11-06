@@ -25,9 +25,9 @@ pnpm db:types
 
 El workflow [.github/workflows/supabase.yml](.github/workflows/supabase.yml) despliega las migraciones pendientes con un push a `main` o al ejecutarlo manualmente seleccionando `main`. Usa Supabase CLI 2.121.0 y serializa los despliegues.
 
-Las variables de los secrets se declaran al inicio del job. El checkout prepara `supabase/config.toml` y `supabase/migrations/` en el directorio de trabajo, con permiso de lectura y credenciales Git sin persistir.
+El job utiliza el entorno de GitHub `main` y declara las variables de sus secrets al inicio. El checkout prepara `supabase/config.toml` y `supabase/migrations/` en el directorio de trabajo, con permiso de lectura y credenciales Git sin persistir.
 
-En GitHub, abrir **Settings → Secrets and variables → Actions → New repository secret** y crear los siguientes secrets.
+En GitHub, abrir **Settings → Environments → main → Environment secrets → Add environment secret** y crear los siguientes secrets.
 
 | Secret                  | Valor                                                                                                   |
 | ----------------------- | ------------------------------------------------------------------------------------------------------- |
