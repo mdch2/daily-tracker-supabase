@@ -1,0 +1,2 @@
+-- Intentionally empty. Never seed real journal content, credentials or tokens.
+-- Security fixtures live in transaction-scoped supabase/tests/database/*.test.sql.

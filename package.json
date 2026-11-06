@@ -1,0 +1,20 @@
+{
+  "name": "daily-tracker-supabase",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@10.28.2",
+  "engines": {
+    "node": "^22.13.0 || ^24.3.0 || >=26.0.0"
+  },
+  "scripts": {
+    "db:start": "supabase start",
+    "db:stop": "supabase stop",
+    "db:restart": "supabase stop && supabase start",
+    "db:reset": "supabase db reset --local",
+    "db:test": "supabase test db",
+    "db:test:auth": "node scripts/test-auth.mjs",
+    "db:test:habits:isolated": "node scripts/test-habits-isolated.mjs",
+    "db:types": "node scripts/generate-db-types.mjs",
+    "db:test:routines:isolated": "node scripts/test-habits-isolated.mjs"
+  }
+}
