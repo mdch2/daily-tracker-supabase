@@ -21,6 +21,22 @@ pnpm db:types
 
 `db:types` genera `types/database.types.ts` desde PostgreSQL local y conserva el artefacto anterior si falla. No se admiten sustitutos escritos a mano. En el móvil, su propio `pnpm db:types` importa este artefacto sin administrar PostgreSQL; si los repositorios no son hermanos, se proporciona la ruta explícita al importador.
 
+## GitHub Actions
+
+El workflow [.github/workflows/supabase.yml](.github/workflows/supabase.yml) despliega las migraciones pendientes con un push a `main` o al ejecutarlo manualmente seleccionando `main`. Usa Supabase CLI 2.121.0 y serializa los despliegues.
+
+Las variables de los secrets se declaran al inicio del job. El checkout prepara `supabase/config.toml` y `supabase/migrations/` en el directorio de trabajo, con permiso de lectura y credenciales Git sin persistir.
+
+En GitHub, abrir **Settings → Secrets and variables → Actions → New repository secret** y crear los siguientes secrets.
+
+| Secret                  | Valor                                                                                                   |
+| ----------------------- | ------------------------------------------------------------------------------------------------------- |
+| `SUPABASE_ACCESS_TOKEN` | Token personal de acceso de Supabase para la CLI.                                                       |
+| `SUPABASE_DB_PASSWORD`  | Contraseña PostgreSQL del proyecto de destino.                                                          |
+| `SUPABASE_PROJECT_REF`  | Referencia del proyecto de destino, visible en la configuración del proyecto y en su URL del dashboard. |
+
+El despliegue ejecuta `supabase link` y `supabase db push --linked --yes`, según la [documentación oficial de Supabase](https://supabase.com/docs/guides/deployment/managing-environments).
+
 ## Seguridad obligatoria
 
 Leer [AGENTS.md](AGENTS.md), la [política y matriz de acceso](docs/security.md) y la [decisión de autorización](docs/adr/001-access-control.md) antes de cambiar el esquema o permisos.

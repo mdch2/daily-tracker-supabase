@@ -1,0 +1,50 @@
+name: Desplegar Supabase
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: supabase-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+      SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Obtener configuración y migraciones
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+          sparse-checkout: |
+            supabase/config.toml
+            supabase/migrations
+          sparse-checkout-cone-mode: false
+
+      - name: Configurar Supabase CLI
+        uses: supabase/setup-cli@689adcfb80d947100a1eab127289b97d1fb07b13 # v3
+        with:
+          version: "2.121.0"
+
+      - name: Desplegar migraciones
+        shell: bash
+        run: |
+          for secret in SUPABASE_ACCESS_TOKEN SUPABASE_DB_PASSWORD SUPABASE_PROJECT_REF; do
+            if [[ -z "${!secret}" ]]; then
+              echo "::error::Falta configurar el secret $secret en GitHub Actions."
+              exit 1
+            fi
+          done
+
+          supabase link --project-ref "$SUPABASE_PROJECT_REF"
+          supabase db push --linked --yes
