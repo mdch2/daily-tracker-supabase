@@ -102,3 +102,13 @@ Escritores SECURITY DEFINER por ausencia de DML cliente, search_path vacío y ob
 6. Ejecutar pnpm db:test, runner aislado y lint SQL afectados; generar tipos con pnpm db:types desde PostgreSQL real. El móvil importa ese artefacto con su propio comando y prueba sus adaptadores/recorridos.
 
 Esta entrega solo documenta. No se ejecutaron migraciones, permisos, SQL, generación de tipos, resets o despliegues de Metas, ni se presenta seguridad futura como probada.
+
+## Recompensa personal y compatibilidad v2 (2026-11-07)
+
+La migración `20261107000100_goal_rewards.sql` añade `reward` anulable a `goal_versions`, con texto recortado de 1–400 puntos de código Unicode cuando existe. Texto vacío se normaliza a nulo. Las metas anteriores quedan sin recompensa; no se modifican sus versiones ni comprobantes.
+
+`create_goal_v2` y `edit_goal_v2` exigen la clave `reward` explícita (texto o nulo). `get_goal_v2` y `get_goals_v2` incluyen `definition.reward`. Las RPC v1 mantienen su forma de lectura y sus huellas de idempotencia. Una edición v1 conserva la recompensa actual. Archivo la copia a la nueva versión y bloquea su edición posterior. El historial reutiliza `before`/`after`; no hay una tabla adicional ni un estado de recompensa recibida.
+
+Los cuatro wrappers v2 son `SECURITY DEFINER`, con `search_path` vacío, identidad de `auth.uid()` y propiedad verificada por los helpers privados existentes. Solo `authenticated` tiene EXECUTE; PUBLIC, anon y service_role no reciben permisos nuevos. Los helpers siguen inaccesibles desde clientes. Las políticas y permisos de tablas no se amplían.
+
+Verificación: suite pgTAP `goal-rewards.test.sql`, cadena incremental y reintento de una operación v1 creada antes de la migración en `db:test:habits:isolated`. Generar tipos con `pnpm db:types` y después importarlos en el móvil. Esta extensión se aplica localmente; no constituye despliegue remoto.

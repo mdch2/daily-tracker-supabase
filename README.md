@@ -21,6 +21,26 @@ pnpm db:types
 
 `db:types` genera `types/database.types.ts` desde PostgreSQL local y conserva el artefacto anterior si falla. No se admiten sustitutos escritos a mano. En el móvil, su propio `pnpm db:types` importa este artefacto sin administrar PostgreSQL; si los repositorios no son hermanos, se proporciona la ruta explícita al importador.
 
+## Puertos locales y error de permisos en Windows
+
+El stack usa API `15421`, PostgreSQL `15422`, Studio `15423`, correo local `15424` y base shadow `15420`, configurados en `supabase/config.toml`. Estos puertos quedan fuera del intervalo dinámico TCP de Windows (49152–65535). El proyecto y su volumen `supabase_db_daily-tracker` conservan su identidad.
+
+Si Docker informa `ports are not available` con `bind: An attempt was made to access a socket in a way forbidden by its access permissions`, comprueba las exclusiones además de los procesos en escucha:
+
+```powershell
+netsh interface ipv4 show excludedportrange protocol=tcp
+netsh interface ipv6 show excludedportrange protocol=tcp
+Get-NetTCPConnection -State Listen
+```
+
+El 7 de noviembre de 2026 se comprobó que Windows reservaba `54243–54342`: todos los puertos anteriores `54320–54324` rechazaban el bind, mientras `15420–15424` lo permitían. No se identificó qué servicio creó la reserva. Cambiar solo PostgreSQL dejaría API, Studio y correo bloqueados.
+
+Tras cambiar puertos, ejecuta `pnpm db:restart` si el stack está iniciado, o `pnpm db:start` si está detenido. No uses `db:reset` ni `supabase stop --no-backup` para este error. Actualiza `EXPO_PUBLIC_SUPABASE_URL` del móvil a `http://127.0.0.1:15421` con `adb reverse tcp:15421 tcp:15421`, o `http://10.0.2.2:15421` para el emulador Android. Reinicia Expo y recarga la app. Las pruebas de Auth obtienen sus URLs desde la CLI.
+
+La sección de correo es `[local_smtp]`, admitida por la CLI 2.121.0 usada por este repositorio y CI; `[inbucket]` solo causaba un aviso de deprecación, independiente del bloqueo TCP. No hace falta actualizar a CLI v3.
+
+Verificación del 7 de noviembre de 2026: `pnpm db:start` correcto desde el volumen existente; PostgreSQL, Auth, Studio y correo saludables; HTTP 200 en Auth/Studio/correo; `pnpm db:test` PASS (7 archivos, 398 comprobaciones); `pnpm db:test:auth` PASS con limpieza del usuario sintético. Sin reset, cambios de esquema ni operaciones remotas.
+
 ## GitHub Actions
 
 El workflow [.github/workflows/supabase.yml](.github/workflows/supabase.yml) despliega las migraciones pendientes con un push a `main` o al ejecutarlo manualmente seleccionando `main`. Usa Supabase CLI 2.121.0 y serializa los despliegues.
@@ -69,7 +89,7 @@ No se necesita `db:fresh` para corregir el registro. El comando existente `pnpm 
 
 `pnpm db:test:auth` usa exclusivamente las URLs locales devueltas por Supabase CLI. Comprueba rechazo con 7 caracteres, registro con 8, confirmación obligatoria, entrega de correo al buzón local, callback `dailytracker://callback`, intercambio PKCE S256 y lectura del perfil mediante REST con el token del propietario. Solo la limpieza del usuario sintético usa credenciales administrativas locales; la comprobación del perfil usa el rol autenticado. El usuario y su correo se eliminan al terminar. Los secretos y las sesiones permanecen en memoria y no se imprimen. Para elegir el correo: `pnpm db:test:auth --email user1-test@gmail.com`. Si la dirección ya existe, la prueba se detiene antes de modificarla; la limpieza solo elimina la cuenta nueva creada por la prueba.
 
-Para Android, configura la app con `http://10.0.2.2:54321` o reenvía explícitamente `adb reverse tcp:54321 tcp:54321`. `127.0.0.1` dentro del emulador no apunta al equipo. Metro solo reenvía su propio puerto. Reinicia Expo y recarga la app tras editar su `.env`.
+Para Android, configura la app con `http://10.0.2.2:15421` o reenvía explícitamente `adb reverse tcp:15421 tcp:15421`. `127.0.0.1` dentro del emulador no apunta al equipo. Metro solo reenvía su propio puerto. Reinicia Expo y recarga la app tras editar su `.env`.
 
 ### Verificación del 21 de octubre de 2026
 

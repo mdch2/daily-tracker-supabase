@@ -1,15 +1,16 @@
+# Puertos locales 1542x: evitan las reservas dinámicas TCP de Windows (49152–65535).
 project_id = "daily-tracker"
 
 [api]
 enabled = true
-port = 54321
+port = 15421
 schemas = ["public"]
 extra_search_path = ["public", "extensions"]
 max_rows = 1000
 
 [db]
-port = 54322
-shadow_port = 54320
+port = 15422
+shadow_port = 15420
 major_version = 17
 
 [db.migrations]
@@ -25,12 +26,12 @@ enabled = false
 
 [studio]
 enabled = true
-port = 54323
+port = 15423
 api_url = "http://127.0.0.1"
 
-[inbucket]
+[local_smtp]
 enabled = true
-port = 54324
+port = 15424
 
 [storage]
 enabled = false
