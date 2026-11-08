@@ -79,6 +79,10 @@ function connection(statement) {
 const snapshotQuery =
   "select md5(jsonb_build_object('habit',to_jsonb(h),'definition',to_jsonb(d),'record',to_jsonb(r))::text) from public.habits h join public.habit_definitions d on d.habit_id=h.id join public.habit_day_records r on r.habit_id=h.id where h.id='22000000-0000-4000-8000-000000000006';";
 let preservedHabitSnapshot;
+let preservedGoalSnapshot;
+const goalSnapshotQuery = "select md5(jsonb_build_object('goal',to_jsonb(g),'version',to_jsonb(v)-'reward','operation',to_jsonb(o))::text) from public.goals g join public.goal_versions v on v.goal_id=g.id join private.goal_operations o on o.goal_id=g.id where g.id='32000000-0000-4000-8000-000000000002';";
+const legacyGoalInput = JSON.stringify({ operation_id:'32000000-0000-4000-8000-000000000003',goal_id:'32000000-0000-4000-8000-000000000002', name:'Preserved legacy goal', description:null, deadline:null, mode:'amount',progress_source:'manual',unit_label:'units',target_milliunits:10000 });
+const legacyGoalActor = "set local role authenticated; select set_config('request.jwt.claims','{\"sub\":\"32000000-0000-4000-8000-000000000001\",\"role\":\"authenticated\"}',true);";
 
 const user = "22000000-0000-4000-8000-000000000001";
 const habit = "22000000-0000-4000-8000-000000000002";
@@ -131,7 +135,20 @@ try {
         commit;`);
       preservedHabitSnapshot = sql(snapshotQuery);
     }
+    if (name === "20261107000100_goal_rewards.sql") {
+      sql("insert into auth.users(id,email) values ('32000000-0000-4000-8000-000000000001','reward-migration@example.test');");
+      sql(`begin; ${legacyGoalActor} select public.initialize_habit_calendar('UTC',1::smallint);
+        select public.create_goal('${legacyGoalInput}'::jsonb || jsonb_build_object('start_date',(clock_timestamp() at time zone 'UTC')::date)); commit;`);
+      preservedGoalSnapshot = sql(goalSnapshotQuery);
+    }
     sql(readFileSync(`supabase/migrations/${name}`, "utf8"));
+    if (name === "20261107000100_goal_rewards.sql") {
+      if (preservedGoalSnapshot !== sql(goalSnapshotQuery)) throw new Error('Reward migration changed an existing goal or operation');
+      sql(`begin; ${legacyGoalActor}
+        select public.create_goal('${legacyGoalInput}'::jsonb || jsonb_build_object('start_date',(clock_timestamp() at time zone 'UTC')::date)); commit;`);
+      if (preservedGoalSnapshot !== sql(goalSnapshotQuery)) throw new Error('Legacy retry changed a migrated goal');
+      process.stdout.write('Incremental goal/operation preservation and pre-migration v1 replay: PASS\n');
+    }
   }
   sql(`do $$ begin if not exists (select 1 from public.profiles where id='${user}'
     and display_name='Preserved profile' and time_zone is null and week_start_day is null)
