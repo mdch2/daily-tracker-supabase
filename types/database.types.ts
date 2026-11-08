@@ -68,14 +68,14 @@ isOneToOne: false
                   ]
                 },"goal_versions": {
                   Row: {
-                    "archived_at": string | null,"deadline": string | null,"description": string | null,"effective_at": string,"goal_id": string,"name": string,"target_milliunits": number | null,"user_id": string,"version": number
+                    "archived_at": string | null,"deadline": string | null,"description": string | null,"effective_at": string,"goal_id": string,"name": string,"reward": string | null,"target_milliunits": number | null,"user_id": string,"version": number
                   }
                   ComputedFields: never
                   Insert: {
-                    "archived_at"?: string | null,"deadline"?: string | null,"description"?: string | null,"effective_at"?: string,"goal_id": string,"name": string,"target_milliunits"?: number | null,"user_id": string,"version": number
+                    "archived_at"?: string | null,"deadline"?: string | null,"description"?: string | null,"effective_at"?: string,"goal_id": string,"name": string,"reward"?: string | null,"target_milliunits"?: number | null,"user_id": string,"version": number
                   }
                   Update: {
-                    "archived_at"?: string | null,"deadline"?: string | null,"description"?: string | null,"effective_at"?: string,"goal_id"?: string,"name"?: string,"target_milliunits"?: number | null,"user_id"?: string,"version"?: number
+                    "archived_at"?: string | null,"deadline"?: string | null,"description"?: string | null,"effective_at"?: string,"goal_id"?: string,"name"?: string,"reward"?: string | null,"target_milliunits"?: number | null,"user_id"?: string,"version"?: number
                   }
                   Relationships: [
                     {
@@ -295,6 +295,9 @@ isOneToOne: false
 "create_goal":
 { Args: { "p_input": Json }; Returns: Json
                            },
+"create_goal_v2":
+{ Args: { "p_input": Json }; Returns: Json
+                           },
 "create_habit":
 { Args: { "p_id": string,"p_measurement_mode": string,"p_name": string,"p_schedule_type": string,"p_target_milliunits"?: number,"p_unit_label"?: string,"p_weekday_mask"?: number,"p_weekly_target"?: number }; Returns: string
                            },
@@ -302,6 +305,9 @@ isOneToOne: false
 { Args: { "p_id": string,"p_name": string,"p_schedule_type": string,"p_steps": Json,"p_weekday_mask"?: number }; Returns: string
                            },
 "edit_goal":
+{ Args: { "p_input": Json }; Returns: Json
+                           },
+"edit_goal_v2":
 { Args: { "p_input": Json }; Returns: Json
                            },
 "edit_habit":
@@ -319,7 +325,13 @@ isOneToOne: false
 "get_goal_history":
 { Args: { "p_input": Json }; Returns: Json
                            },
+"get_goal_v2":
+{ Args: { "p_input": Json }; Returns: Json
+                           },
 "get_goals":
+{ Args: { "p_input": Json }; Returns: Json
+                           },
+"get_goals_v2":
 { Args: { "p_input": Json }; Returns: Json
                            },
 "get_habit_context":
